@@ -22,45 +22,8 @@ public class MaekawaMain {
         runRandomProcesses(8);
     }
 
-    public static void runDeadlockProcesses(){
-        try {
-            MaekawaProcess[] processes = new MaekawaProcess[3];
-            List<Set<Integer>> requestSets = new ArrayList<Set<Integer>>();
-            MaekawaObserver observer = new MaekawaObserver();
-        
-            Integer[] requestArray0 = {0, 1, 2}; 
-            Integer[] requestArray1 = {1, 4, 6}; 
-            Integer[] requestArray2 = {2, 3, 4}; 
-            Integer[] requestArray3 = {0, 3, 6}; 
-            Integer[] requestArray4 = {0, 4, 5}; 
-            Integer[] requestArray5 = {1, 3, 5}; 
-            Integer[] requestArray6 = {2, 5, 6}; 
-
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray0)));
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray1)));
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray2)));
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray3)));
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray4)));
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray5)));
-            requestSets.add(new HashSet<>(Arrays.asList(requestArray6)));
-
-            processes[0] = new MaekawaProcess(0, 7, requestSets.get(0), 3000, 8000, 1000, observer);
-            processes[1] = new MaekawaProcess(1, 7, requestSets.get(1), 40000, 8000, 1000, observer);
-            processes[2] = new MaekawaProcess(2, 7, requestSets.get(2), 3000, 8000, 1000, observer);
-            processes[3] = new MaekawaProcess(3, 7, requestSets.get(3), 40000, 8000, 1000, observer);
-            processes[4] = new MaekawaProcess(4, 7, requestSets.get(4), 3000, 8000, 1000, observer);
-            processes[5] = new MaekawaProcess(5, 7, requestSets.get(5), 40000, 8000, 1000, observer);
-            processes[6] = new MaekawaProcess(6, 7, requestSets.get(6), 40000, 8000, 1000, observer);
-
-            runProcesses(processes);
-        }
-        catch (RemoteException e) {
-            e.printStackTrace();
-        }
-    }
-
     /**
-     * Runs the distributed system for the total ordering of broadcast messages.
+     * Runs Maekawa's mutual-exclusion algorithm for the given number of random processes.
      * @param numberOfProcesses The number of processes in the system.
      */
     public static void runRandomProcesses(int numberOfProcesses){
@@ -83,6 +46,10 @@ public class MaekawaMain {
         } 
     }
 
+    /**
+     * Runs Maekawa's mutual-exclusion algorithm for the given number of processes.
+     * @param processes The array of processes of to run.
+     */
     public static void runProcesses(MaekawaProcess[] processes) {
         try{
 
@@ -101,6 +68,12 @@ public class MaekawaMain {
         }
     }
 
+    /**
+     * Generates random request sets for the given number of processes with the given add probability.
+     * @param numberOfProcesses The number of processes in the system.
+     * @param addProbability The probability with which a process gets added to a request set.
+     * @return A list of request sets.
+     */
     public static List<Set<Integer>> generateRequestSets(int numberOfProcesses, double addProbability){
         List<Set<Integer>> requestSets = new ArrayList<Set<Integer>>();
         Random random = new Random();

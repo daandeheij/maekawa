@@ -43,6 +43,10 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         }
     }
 
+    /**
+     * Lets the process wait for the given duration.
+     * @param duration The amount of time that the process should wait.
+     */
     public void wait(int duration){
         try {
             Thread.sleep(duration);
@@ -81,6 +85,9 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         }
     }
 
+    /**
+     * Sends request messages to all processes in the request set.
+     */
     public void sendRequests() {
         int[] timestamp = incrementClock();
         waiting = true;
@@ -90,11 +97,18 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         }
     }
 
+    /**
+     * Sends a grant to the process with the given process ID.
+     * @param receiverId The ID of the procress to receive the grant.
+     */
     public void sendGrant(int receiverId) {
         int[] timestamp = incrementClock();
         sendMessage(receiverId, "GRANT", timestamp);
     }
 
+    /**
+     * Sends release messages to all processes in the request set.
+     */
     public void sendReleases() {
         grantSet.clear();
         int[] timestamp = incrementClock();
@@ -104,7 +118,12 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         }
     }
     
-
+    /**
+     * Sends a message to the process with the given process ID.
+     * @param receiverId The ID of the process to send the message to.
+     * @param messageType The type of the message.
+     * @param timestamp The timestamp of the message.
+     */
     public void sendMessage(int receiverId, String messageType, int[] timestamp){
         try {
             MaekawaProcessRMI process = (MaekawaProcessRMI) Naming.lookup("rmi://localhost:1099/" + String.valueOf(receiverId));
