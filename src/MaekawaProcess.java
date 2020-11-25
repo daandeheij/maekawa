@@ -12,46 +12,49 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     public int[] clock;
     public Queue<MaekawaMessage> receivedRequests;
     public Set<Integer> requestSet;
-    public int numberOfCriticalSections;
+    public int period;
+    public int offset;
+    public int duration;
     public Set<Integer> grantSet;
     public boolean waiting;
     public boolean granted;
     public MaekawaMessage currentGrantMessage;
     public MaekawaObserver observer;
 
-    protected MaekawaProcess(int processId, int numberOfProcesses, Set<Integer> requestSet, int numberOfCriticalSections, MaekawaObserver observer) throws RemoteException {
+    protected MaekawaProcess(int processId, int numberOfProcesses, Set<Integer> requestSet, int offset, int period, int duration, MaekawaObserver observer) throws RemoteException {
         this.processId = processId;
         this.clock = new int[numberOfProcesses];
         this.receivedRequests = new PriorityQueue<MaekawaMessage>();
         this.requestSet = requestSet;
-        this.numberOfCriticalSections = numberOfCriticalSections;
+        this.offset = offset;
+        this.period = period;
+        this.duration = duration;
         this.grantSet = new HashSet<Integer>();
         this.observer = observer;
         this.observer.register(this);
-        this.waiting = false;
     }
 
     @Override
     public void run() {
-        for (int i = 0; i < numberOfCriticalSections; i++){
-            randomDelay();
+        wait(offset);
+        while (true){
             sendRequests();
+            wait(period);
         }
     }
 
-    public void randomDelay(){
+    public void wait(int duration){
         try {
-            int randomDelay = (int) (5000 * Math.random());
-            Thread.sleep(randomDelay);
-        } 
-        catch (InterruptedException e) {
+            Thread.sleep(duration);
+        }
+        catch (Exception e) {
             e.printStackTrace();
         }
     }
 
     public void criticalSection() {
         System.out.println("Process " + processId + " entering critical section with request set: " + requestSet.toString());
-        randomDelay();
+        wait(duration);
         System.out.println("Process " + processId + " leaving critical section with request set: " + requestSet.toString());
     }
 

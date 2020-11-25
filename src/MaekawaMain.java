@@ -12,41 +12,86 @@ public class MaekawaMain {
      * Runs the system with three processes.
      */
     public static void runThreeProcesses(){
-        runProcesses(3, 2);
+        runRandomProcesses(3);
     }
 
     /**
      * Runs the system with many processes.
      */
     public static void runManyProcesses(){
-        runProcesses(8, 2);
+        runRandomProcesses(8);
     }
 
     public static void runDeadlockProcesses(){
+        try {
+            MaekawaProcess[] processes = new MaekawaProcess[3];
+            List<Set<Integer>> requestSets = new ArrayList<Set<Integer>>();
+            MaekawaObserver observer = new MaekawaObserver();
+        
+            Integer[] requestArray0 = {0, 1, 2}; 
+            Integer[] requestArray1 = {1, 4, 6}; 
+            Integer[] requestArray2 = {2, 3, 4}; 
+            Integer[] requestArray3 = {0, 3, 6}; 
+            Integer[] requestArray4 = {0, 4, 5}; 
+            Integer[] requestArray5 = {1, 3, 5}; 
+            Integer[] requestArray6 = {2, 5, 6}; 
 
-        // MaekawaProcess process0 = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
-        // MaekawaProcess process1 = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
-        // MaekawaProcess process2 = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray0)));
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray1)));
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray2)));
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray3)));
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray4)));
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray5)));
+            requestSets.add(new HashSet<>(Arrays.asList(requestArray6)));
 
+            processes[0] = new MaekawaProcess(0, 7, requestSets.get(0), 3000, 8000, 1000, observer);
+            processes[1] = new MaekawaProcess(1, 7, requestSets.get(1), 40000, 8000, 1000, observer);
+            processes[2] = new MaekawaProcess(2, 7, requestSets.get(2), 3000, 8000, 1000, observer);
+            processes[3] = new MaekawaProcess(3, 7, requestSets.get(3), 40000, 8000, 1000, observer);
+            processes[4] = new MaekawaProcess(4, 7, requestSets.get(4), 3000, 8000, 1000, observer);
+            processes[5] = new MaekawaProcess(5, 7, requestSets.get(5), 40000, 8000, 1000, observer);
+            processes[6] = new MaekawaProcess(6, 7, requestSets.get(6), 40000, 8000, 1000, observer);
+
+            runProcesses(processes);
+        }
+        catch (RemoteException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
      * Runs the distributed system for the total ordering of broadcast messages.
      * @param numberOfProcesses The number of processes in the system.
      */
-    public static void runProcesses(int numberOfProcesses, int numberOfCriticalSections){
+    public static void runRandomProcesses(int numberOfProcesses){
         try {
             MaekawaProcess[] processes = new MaekawaProcess[numberOfProcesses];
             List<Set<Integer>> requestSets = generateRequestSets(numberOfProcesses, 0.1);
             MaekawaObserver observer = new MaekawaObserver();
 
-            java.rmi.registry.LocateRegistry.createRegistry(1099);
             for (int i = 0; i < numberOfProcesses; i++) {
-                processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
+                int offset = (int) (5000 * Math.random());
+                int period = 1000 + (int) (5000 * Math.random());
+                int duration = 100 + (int) (100 * Math.random());
+                processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), offset, period, duration, observer);
+            }
+            
+            runProcesses(processes);
+        }
+        catch (RemoteException e){
+            e.printStackTrace();
+        } 
+    }
+
+    public static void runProcesses(MaekawaProcess[] processes) {
+        try{
+
+            java.rmi.registry.LocateRegistry.createRegistry(1099);
+            for (int i = 0; i < processes.length; i++) {
                 Naming.bind("rmi://localhost:1099/" + String.valueOf(i), processes[i]);
             }
 
-            for (int i = 0; i < numberOfProcesses; i++) {
+            for (int i = 0; i < processes.length; i++) {
                 Thread thread = new Thread(processes[i]);
                 thread.start();
             }
