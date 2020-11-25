@@ -13,16 +13,22 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     public Queue<MaekawaMessage> receivedRequests;
     public Set<Integer> requestSet;
     public int numberOfCriticalSections;
-    public int numberOfGrants;
+    public Set<Integer> grantSet;
+    public boolean waiting;
     public boolean granted;
     public MaekawaMessage currentGrantMessage;
+    public MaekawaObserver observer;
 
-    protected MaekawaProcess(int processId, int numberOfProcesses, Set<Integer> requestSet, int numberOfCriticalSections) throws RemoteException {
+    protected MaekawaProcess(int processId, int numberOfProcesses, Set<Integer> requestSet, int numberOfCriticalSections, MaekawaObserver observer) throws RemoteException {
         this.processId = processId;
         this.clock = new int[numberOfProcesses];
         this.receivedRequests = new PriorityQueue<MaekawaMessage>();
         this.requestSet = requestSet;
         this.numberOfCriticalSections = numberOfCriticalSections;
+        this.grantSet = new HashSet<Integer>();
+        this.observer = observer;
+        this.observer.register(this);
+        this.waiting = false;
     }
 
     @Override
@@ -44,9 +50,9 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     }
 
     public void criticalSection() {
-        System.out.println("Process " + processId + " entering CS with resources: " + requestSet.toString());
+        System.out.println("Process " + processId + " entering critical section with request set: " + requestSet.toString());
         randomDelay();
-        System.out.println("Process " + processId + " leaving CS with resources: " + requestSet.toString());
+        System.out.println("Process " + processId + " leaving critical section with request set: " + requestSet.toString());
     }
 
     /**
@@ -74,7 +80,8 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
 
     public void sendRequests() {
         int[] timestamp = incrementClock();
-
+        waiting = true;
+        observer.inform();
         for (int resourceId : requestSet) {
             sendMessage(resourceId, "REQUEST", timestamp);
         }
@@ -86,7 +93,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     }
 
     public void sendReleases() {
-        numberOfGrants = 0;
+        grantSet.clear();
         int[] timestamp = incrementClock();
 
         for (int resourceId : requestSet) {
@@ -125,8 +132,10 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                 break;
             }
             case "GRANT": {
-                numberOfGrants++;
-                if (numberOfGrants == requestSet.size()) {
+                grantSet.add(senderId);
+                if (grantSet.size() == requestSet.size()) {
+                    waiting = false;
+                    observer.inform();
                     criticalSection();
                     sendReleases();
                 }

@@ -22,6 +22,14 @@ public class MaekawaMain {
         runProcesses(8, 2);
     }
 
+    public static void runDeadlockProcesses(){
+
+        // MaekawaProcess process0 = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
+        // MaekawaProcess process1 = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
+        // MaekawaProcess process2 = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
+
+    }
+
     /**
      * Runs the distributed system for the total ordering of broadcast messages.
      * @param numberOfProcesses The number of processes in the system.
@@ -30,10 +38,11 @@ public class MaekawaMain {
         try {
             MaekawaProcess[] processes = new MaekawaProcess[numberOfProcesses];
             List<Set<Integer>> requestSets = generateRequestSets(numberOfProcesses, 0.1);
+            MaekawaObserver observer = new MaekawaObserver();
 
             java.rmi.registry.LocateRegistry.createRegistry(1099);
             for (int i = 0; i < numberOfProcesses; i++) {
-                processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections);
+                processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), numberOfCriticalSections, observer);
                 Naming.bind("rmi://localhost:1099/" + String.valueOf(i), processes[i]);
             }
 
