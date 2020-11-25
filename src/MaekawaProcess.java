@@ -1,4 +1,5 @@
 import java.net.MalformedURLException;
+import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -96,9 +97,9 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
 
     public void sendMessage(int receiverId, String messageType, int[] timestamp){
         try {
-            MaekawaProcess process = (MaekawaProcess) java.rmi.Naming.lookup("rmi://localhost:1099/" + String.valueOf(receiverId));
+            MaekawaProcessRMI process = (MaekawaProcessRMI) Naming.lookup("rmi://localhost:1099/" + String.valueOf(receiverId));
             System.out.println("process " + processId + " sent message of type " + messageType + " to process " + receiverId);
-            process.receiveMessage(processId, "REQUEST", timestamp);
+            process.receiveMessage(processId, messageType, timestamp);
         } 
         catch (MalformedURLException | RemoteException | NotBoundException e) {
             e.printStackTrace();

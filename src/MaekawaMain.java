@@ -12,14 +12,14 @@ public class MaekawaMain {
      * Runs the system with three processes.
      */
     public static void runThreeProcesses(){
-        runProcesses(3, 1);
+        runProcesses(3, 2);
     }
 
     /**
      * Runs the system with many processes.
      */
     public static void runManyProcesses(){
-        runProcesses(8, 1);
+        runProcesses(8, 2);
     }
 
     /**
