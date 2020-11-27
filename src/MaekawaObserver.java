@@ -3,9 +3,11 @@ import java.util.List;
 
 public class MaekawaObserver {
 
+    public int numberOfProcesses;
     public List<MaekawaProcess> processes;
     
-    public MaekawaObserver() {
+    public MaekawaObserver(int numberOfProcesses) {
+        this.numberOfProcesses = numberOfProcesses;
         this.processes = new ArrayList<MaekawaProcess>();
     }
 
@@ -21,6 +23,7 @@ public class MaekawaObserver {
      * inform observer that waiting status of process has changed
      */
     public void inform() {
+        if (processes.size() < numberOfProcesses) return;
         if (deadlock()) System.out.println("DEADLOCK");
     }
 
