@@ -57,12 +57,12 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         System.out.println("Process " + processId + " entering critical section with request set: " + requestSet.toString());
         for (int elapsed = 0; elapsed < duration; elapsed += 10){
             if (postponed) {
-                System.out.println("Process " + processId + " leaving critical section with request set: " + requestSet.toString() + " due to relinquishing");
+                System.out.println("Process " + processId + " aborting access to critical section with request set: " + requestSet.toString() + " due to relinquishing");
                 break;
             }
             wait(10);
         }
-        System.out.println("Process " + processId + " leaving critical section with request set: " + requestSet.toString());
+        System.out.println("Process " + processId + " finished execution of critical section with request set: " + requestSet.toString());
     }
 
     /**
