@@ -186,6 +186,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                         }
                     }
                 }
+                break;
             }
             case "GRANT": {
                 numberOfGrants++;
@@ -194,6 +195,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                     criticalSection();
                     multicastRelease();
                 }
+                break;
             }
             case "INQUIRE": {
                 int j = message.senderId;
@@ -202,6 +204,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                     numberOfGrants--;
                     sendRelinquish(j);
                 }
+                break;
             }
             case "RELINQUISH": {
                 inquiring = false;
@@ -211,6 +214,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                 int j = currentGrant.senderId;
                 granted = true;
                 sendGrant(j);
+                break;
             }
             case "RELEASE": {
                 granted = false;
@@ -221,9 +225,11 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                     granted = true;
                     sendGrant(j);
                 }
+                break;
             }
             case "POSTPONE": {
                 postponed = true;
+                break;
             }
         }
     }
