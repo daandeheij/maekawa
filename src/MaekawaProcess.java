@@ -55,7 +55,13 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
 
     public void criticalSection() {
         System.out.println("Process " + processId + " entering critical section with request set: " + requestSet.toString());
-        wait(duration);
+        for (int elapsed = 0; elapsed < duration; elapsed += 10){
+            if (postponed) {
+                System.out.println("Process " + processId + " leaving critical section with request set: " + requestSet.toString() + " due to relinquishing");
+                break;
+            }
+            wait(10);
+        }
         System.out.println("Process " + processId + " leaving critical section with request set: " + requestSet.toString());
     }
 
@@ -162,7 +168,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         updateClock(timestamp);
 
         System.out.println("Process " + processId + " received message of type " + messageType + " from process " + senderId);
-        MaekawaMessage message = new MaekawaMessage(senderId, messageType, timestamp);;
+        MaekawaMessage message = new MaekawaMessage(senderId, messageType, timestamp);
 
         switch (messageType) {
             case "REQUEST": {
@@ -199,7 +205,9 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
             }
             case "INQUIRE": {
                 int j = message.senderId;
-                while (!(postponed) && !(numberOfGrants == requestSet.size()));
+                while (!(postponed) && !(numberOfGrants == requestSet.size())){
+                    wait(10);
+                }
                 if (postponed) {
                     numberOfGrants--;
                     sendRelinquish(j);
