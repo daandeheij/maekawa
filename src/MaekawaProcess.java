@@ -15,13 +15,12 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     public int period;
     public int offset;
     public int duration;
-    public Set<Integer> grantSet;
-    public boolean waiting;
+    public int numberOfGrants;
     public boolean granted;
-    public MaekawaMessage currentGrantMessage;
-    public MaekawaObserver observer;
+    public boolean postponed;
+    public MaekawaMessage currentGrant;
 
-    protected MaekawaProcess(int processId, int numberOfProcesses, Set<Integer> requestSet, int offset, int period, int duration, MaekawaObserver observer) throws RemoteException {
+    protected MaekawaProcess(int processId, int numberOfProcesses, Set<Integer> requestSet, int offset, int period, int duration) throws RemoteException {
         this.processId = processId;
         this.clock = new int[numberOfProcesses];
         this.receivedRequests = new PriorityQueue<MaekawaMessage>();
@@ -29,9 +28,6 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         this.offset = offset;
         this.period = period;
         this.duration = duration;
-        this.grantSet = new HashSet<Integer>();
-        this.observer = observer;
-        this.observer.register(this);
     }
 
     @Override
@@ -45,7 +41,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
 
     /**
      * Lets the process wait for the given duration.
-     * @param duration The amount of time that the process should wait.
+     * @param duration The amount of time in milliseconds that the process should wait.
      */
     public void wait(int duration){
         try {
@@ -90,8 +86,6 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      */
     public void sendRequests() {
         int[] timestamp = incrementClock();
-        waiting = true;
-        observer.inform();
         for (int resourceId : requestSet) {
             sendMessage(resourceId, "REQUEST", timestamp);
         }
@@ -99,7 +93,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
 
     /**
      * Sends a grant to the process with the given process ID.
-     * @param receiverId The ID of the procress to receive the grant.
+     * @param receiverId The ID of the process to receive the grant.
      */
     public void sendGrant(int receiverId) {
         int[] timestamp = incrementClock();
@@ -107,10 +101,37 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     }
 
     /**
+     * Sends a postpone to the process with the given process ID.
+     * @param receiverId The ID of the process to receive the postpone.
+     */
+    public void sendPostpone(int receiverId) {
+        int[] timestamp = incrementClock();
+        sendMessage(receiverId, "POSTPONE", timestamp);
+    }
+
+    /**
+     * Sends an inquire to the process with the given process ID.
+     * @param receiverId The ID of the process to receive the inquire.
+     */
+    public void sendInquire(int receiverId) {
+        int[] timestamp = incrementClock();
+        sendMessage(receiverId, "INQUIRE", timestamp);
+    }
+
+    /**
+     * Sends a relinquish to the process with the given process ID.
+     * @param receiverId The ID of the process to receive the inquire.
+     */
+    public void sendRelinquish(int receiverId) {
+        int[] timestamp = incrementClock();
+        sendMessage(receiverId, "RELINQUISH", timestamp);
+    }
+
+    /**
      * Sends release messages to all processes in the request set.
      */
-    public void sendReleases() {
-        grantSet.clear();
+    public void multicastRelease() {
+        numberOfGrants = 0;
         int[] timestamp = incrementClock();
 
         for (int resourceId : requestSet) {
@@ -146,7 +167,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         switch (messageType) {
             case "REQUEST": {
                 if (!granted) {
-                    currentGrantMessage = message;
+                    currentGrant = message;
                     granted = true;
                     sendGrant(senderId);
                 } 
@@ -154,23 +175,31 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                 break;
             }
             case "GRANT": {
-                grantSet.add(senderId);
-                if (grantSet.size() == requestSet.size()) {
-                    waiting = false;
-                    observer.inform();
+                numberOfGrants++;
+                if (numberOfGrants == requestSet.size()) {
+                    postponed = false;
                     criticalSection();
-                    sendReleases();
+                    multicastRelease();
                 }
                 break;
+            }
+            case "INQUIRE": {
+                // TODO: INQUIRE logic
+            }
+            case "RELINQUISH": {
+                // TODO: RELINQUISH logic
             }
             case "RELEASE": {
                 granted = false;
                 if (!receivedRequests.isEmpty()) {
-                    currentGrantMessage = receivedRequests.poll();
+                    currentGrant = receivedRequests.poll();
                     granted = true;
-                    sendGrant(currentGrantMessage.senderId);
+                    sendGrant(currentGrant.senderId);
                 }
                 break;
+            }
+            case "POSTPONE": {
+                postponed = true;
             }
         }
     }

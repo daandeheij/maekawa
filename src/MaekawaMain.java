@@ -31,13 +31,12 @@ public class MaekawaMain {
     public static void runThreeDistributedProcessesServer(){
         try {
             int numberOfProcesses = 3;
-            MaekawaObserver observer = new MaekawaObserver(numberOfProcesses);
 
             Integer requestSetArray0[] = {0, 1};
             Set<Integer> requestSet0 = new HashSet<Integer>(Arrays.asList(requestSetArray0));
 
             MaekawaProcess[] processes = new MaekawaProcess[1];
-            processes[0] = new MaekawaProcess(0, numberOfProcesses, requestSet0, 30000, 3000, 500, observer);
+            processes[0] = new MaekawaProcess(0, numberOfProcesses, requestSet0, 30000, 3000, 500);
             runProcesses(processes, true);
         }
         catch (RemoteException e){
@@ -51,7 +50,6 @@ public class MaekawaMain {
     public static void runThreeDistributedProcessesClient(){
         try {
             int numberOfProcesses = 3;
-            MaekawaObserver observer = new MaekawaObserver(numberOfProcesses);
 
             Integer requestSetArray1[] = {1, 2};
             Integer requestSetArray2[] = {0, 2};
@@ -60,8 +58,8 @@ public class MaekawaMain {
             Set<Integer> requestSet2 = new HashSet<Integer>(Arrays.asList(requestSetArray2));
 
             MaekawaProcess[] processes = new MaekawaProcess[2];
-            processes[0] = new MaekawaProcess(1 ,numberOfProcesses, requestSet1, 22000, 6000, 1000, observer);
-            processes[1] = new MaekawaProcess(2 ,numberOfProcesses, requestSet2, 25000, 5000, 2000, observer);
+            processes[0] = new MaekawaProcess(1 ,numberOfProcesses, requestSet1, 22000, 6000, 1000);
+            processes[1] = new MaekawaProcess(2 ,numberOfProcesses, requestSet2, 25000, 5000, 2000);
             runProcesses(processes, false);
         }
         catch (RemoteException e){
@@ -77,13 +75,12 @@ public class MaekawaMain {
         try {
             MaekawaProcess[] processes = new MaekawaProcess[numberOfProcesses];
             List<Set<Integer>> requestSets = generateRequestSets(numberOfProcesses, 0.1);
-            MaekawaObserver observer = new MaekawaObserver(numberOfProcesses);
 
             for (int i = 0; i < numberOfProcesses; i++) {
                 int offset = (int) (5000 * Math.random());
                 int period = 1000 + (int) (5000 * Math.random());
                 int duration = 100 + (int) (100 * Math.random());
-                processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), offset, period, duration, observer);
+                processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), offset, period, duration);
             }
             
             runProcesses(processes, createRegistry);
