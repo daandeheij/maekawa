@@ -125,9 +125,9 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      * Sends an inquire to the process with the given process ID.
      * @param receiverId The ID of the process to receive the inquire.
      */
-    public void sendInquire(int inquirerId, int receiverId) {
+    public void sendInquire(int receiverId) {
         int[] timestamp = incrementClock();
-        sendMessage(receiverId, "INQUIRE", inquirerId, timestamp);
+        sendMessage(receiverId, "INQUIRE", -1, timestamp);
     }
 
     /**
@@ -149,7 +149,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         try {
             MaekawaProcessRMI process = (MaekawaProcessRMI) Naming.lookup("rmi://localhost:1099/" + String.valueOf(receiverId));
             System.out.println("process " + processId + " sent message of type " + messageType + " to process " + receiverId);
-            process.receiveMessage(processId, messageType, inquirerId, timestamp);
+            process.receiveMessage(processId, messageType, timestamp);
         } 
         catch (MalformedURLException | RemoteException | NotBoundException e) {
             e.printStackTrace();
@@ -157,16 +157,15 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     }
 
     @Override
-    public void receiveMessage(int senderId, String messageType, int inquirerId, int[] timestamp) {
+    public void receiveMessage(int senderId, String messageType, int[] timestamp) {
         incrementClock();
         updateClock(timestamp);
 
         System.out.println("Process " + processId + " received message of type " + messageType + " from process " + senderId);
-        MaekawaMessage message = new MaekawaMessage(senderId, messageType, inquirerId, timestamp);;
+        MaekawaMessage message = new MaekawaMessage(senderId, messageType, timestamp);;
 
         switch (messageType) {
             case "REQUEST": {
-                int i = this.processId;
                 int j = message.senderId;
                 if (!granted) {
                     currentGrant = message;
@@ -183,7 +182,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                         if (!inquiring){
                             inquiring = true;
                             int l = currentGrant.senderId;
-                            sendInquire(i, l);
+                            sendInquire(l);
                         }
                     }
                 }
@@ -197,7 +196,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
                 }
             }
             case "INQUIRE": {
-                int j = message.inquirerId;
+                int j = message.senderId;
                 while (!(postponed) && !(numberOfGrants == requestSet.size()));
                 if (postponed) {
                     numberOfGrants--;

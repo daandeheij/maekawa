@@ -9,5 +9,5 @@ public interface MaekawaProcessRMI extends Remote {
      * @param timestamp The time at which the message was sent.
      * @throws RemoteException
      */
-    void receiveMessage(int senderId, String messageType, int inquirerId, int[] timestamp) throws RemoteException;
+    void receiveMessage(int senderId, String messageType, int[] timestamp) throws RemoteException;
 }

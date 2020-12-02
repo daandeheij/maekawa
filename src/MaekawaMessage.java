@@ -3,13 +3,11 @@ import java.util.Arrays;
 public class MaekawaMessage implements Comparable<MaekawaMessage> {
     public int senderId;
     public String messageType;
-    public int inquirerId;
     public int[] timestamp;
 
-    public MaekawaMessage(int senderId, String messageType, int inquiringId, int[] timestamp){
+    public MaekawaMessage(int senderId, String messageType, int[] timestamp){
         this.senderId = senderId;
         this.messageType = messageType;
-        this.inquirerId = inquiringId;
         this.timestamp = timestamp;
     }
 
