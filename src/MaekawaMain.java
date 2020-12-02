@@ -4,8 +4,8 @@ import java.util.*;
 
 public class MaekawaMain {
     public static void main(String[] args) {
-        runThreeProcesses();
-        //runManyProcesses();
+        //runThreeProcesses();
+        runManyProcesses();
 
         //runThreeDistributedProcessesServer();
         //runThreeDistributedProcessesClient();
@@ -78,8 +78,8 @@ public class MaekawaMain {
 
             for (int i = 0; i < numberOfProcesses; i++) {
                 int offset = (int) (5000 * Math.random());
-                int period = 1000 + (int) (5000 * Math.random());
-                int duration = 100 + (int) (100 * Math.random());
+                int period = 2000 + (int) (10000 * Math.random());
+                int duration = 1000 + (int) (1000 * Math.random());
                 processes[i] = new MaekawaProcess(i, numberOfProcesses, requestSets.get(i), offset, period, duration);
             }
             
@@ -105,6 +105,7 @@ public class MaekawaMain {
                 Thread thread = new Thread(processes[i]);
                 thread.start();
             }
+            while (true);
         }
         catch (MalformedURLException | RemoteException | AlreadyBoundException e) {
             e.printStackTrace();
