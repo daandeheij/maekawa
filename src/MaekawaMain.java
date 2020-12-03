@@ -105,7 +105,6 @@ public class MaekawaMain {
                 Thread thread = new Thread(processes[i]);
                 thread.start();
             }
-            while (true);
         }
         catch (MalformedURLException | RemoteException | AlreadyBoundException e) {
             e.printStackTrace();
