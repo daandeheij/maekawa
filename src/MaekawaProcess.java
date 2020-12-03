@@ -53,15 +53,12 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         }
     }
 
+    /**
+     * Runs the critical section of this process.
+     */
     public void criticalSection() {
         System.out.println("Process " + processId + " entering critical section with request set: " + requestSet.toString());
-        for (int elapsed = 0; elapsed < duration; elapsed += 10){
-            if (postponed) {
-                System.out.println("Process " + processId + " aborting access to critical section with request set: " + requestSet.toString() + " due to relinquishing");
-                break;
-            }
-            wait(10);
-        }
+        wait(duration);
         System.out.println("Process " + processId + " finished execution of critical section with request set: " + requestSet.toString());
     }
 
@@ -94,7 +91,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
     public void multicastRequest() {
         int[] timestamp = incrementClock();
         for (int resourceId : requestSet) {
-            sendMessage(resourceId, "REQUEST", -1, timestamp);
+            sendMessage(resourceId, "REQUEST", timestamp);
         }
     }
 
@@ -105,7 +102,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
         numberOfGrants = 0;
         int[] timestamp = incrementClock();
         for (int resourceId : requestSet) {
-            sendMessage(resourceId, "RELEASE", -1, timestamp);
+            sendMessage(resourceId, "RELEASE", timestamp);
         }
     }
 
@@ -115,7 +112,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      */
     public void sendGrant(int receiverId) {
         int[] timestamp = incrementClock();
-        sendMessage(receiverId, "GRANT", -1, timestamp);
+        sendMessage(receiverId, "GRANT", timestamp);
     }
 
     /**
@@ -124,7 +121,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      */
     public void sendPostpone(int receiverId) {
         int[] timestamp = incrementClock();
-        sendMessage(receiverId, "POSTPONE", -1, timestamp);
+        sendMessage(receiverId, "POSTPONE", timestamp);
     }
 
     /**
@@ -133,7 +130,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      */
     public void sendInquire(int receiverId) {
         int[] timestamp = incrementClock();
-        sendMessage(receiverId, "INQUIRE", -1, timestamp);
+        sendMessage(receiverId, "INQUIRE", timestamp);
     }
 
     /**
@@ -142,7 +139,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      */
     public void sendRelinquish(int receiverId) {
         int[] timestamp = incrementClock();
-        sendMessage(receiverId, "RELINQUISH", -1, timestamp);
+        sendMessage(receiverId, "RELINQUISH", timestamp);
     }
     
     /**
@@ -151,7 +148,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
      * @param messageType The type of the message.
      * @param timestamp The timestamp of the message.
      */
-    public void sendMessage(int receiverId, String messageType, int inquirerId, int[] timestamp){
+    public void sendMessage(int receiverId, String messageType, int[] timestamp){
         try {
             MaekawaProcessRMI process = (MaekawaProcessRMI) Naming.lookup("rmi://localhost:1099/" + String.valueOf(receiverId));
             System.out.println("process " + processId + " sent message of type " + messageType + " to process " + receiverId);
@@ -206,7 +203,7 @@ public class MaekawaProcess extends UnicastRemoteObject implements MaekawaProces
             case "INQUIRE": {
                 int j = message.senderId;
                 while (!(postponed) && !(numberOfGrants == requestSet.size())){
-                    wait(10);
+                    //wait(10);
                 }
                 if (postponed) {
                     numberOfGrants--;
